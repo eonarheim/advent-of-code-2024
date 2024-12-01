@@ -3,6 +3,64 @@
 #include <string.h>
 #include <math.h>
 
+typedef struct dict_entry_s {
+    const char *key;
+    int value;
+} dict_entry_s;
+
+typedef struct dict_s {
+    int len;
+    int cap;
+    dict_entry_s *entry;
+} dict_s, *dict_t;
+
+int dict_find_index(dict_t dict, const char *key) {
+    for (int i = 0; i < dict->len; i++) {
+        if (strcmp(dict->entry[i].key, key) == 0) {
+            // printf("found key %s\n", key);
+            return i;
+        }
+    }
+    return -1;
+}
+
+int dict_find(dict_t dict, const char *key, int default_val) {
+    int idx = dict_find_index(dict, key);
+    return idx == -1 ? default_val : dict->entry[idx].value;
+}
+
+void dict_add(dict_t dict, const char *key, int value) {
+   int idx = dict_find_index(dict, key);
+   if (idx != -1) {
+    //    printf("Updating value %d to %d\n", dict->entry[idx].value, value);
+       dict->entry[idx].value = value;
+       return;
+   }
+   if (dict->len == dict->cap) {
+       dict->cap *= 2;
+       dict->entry = realloc(dict->entry, dict->cap * sizeof(dict_entry_s));
+   }
+   dict->entry[dict->len].key = strdup(key);
+   dict->entry[dict->len].value = value;
+   dict->len++;
+}
+
+dict_t dict_new(void) {
+    dict_s proto = {0, 10, malloc(10 * sizeof(dict_entry_s))};
+    dict_t d = malloc(sizeof(dict_s));
+    *d = proto;
+    return d;
+}
+
+void dict_free(dict_t dict) {
+    for (int i = 0; i < dict->len; i++) {
+        free((void*) dict->entry[i].key);
+    }
+    free((void*) dict->entry);
+    free(dict);
+}
+
+
 int distance(int left, int right) {
     return abs(left - right);
 }
@@ -97,13 +155,33 @@ int main(void) {
     qsort(list1, list_size, sizeof(int), &compar);
     qsort(list2, list_size, sizeof(int), &compar);
 
+
+    dict_t dictionary = dict_new();
+
     int total_distance = 0;
     for (int i = 0; i < list_size; i++) {
         printf("%d %d\n", list1[i], list2[i]);
         total_distance += distance(list1[i], list2[i]);
+
+        // TODO mem inefficient
+        char* number_string = malloc(sizeof(char) * 100);
+        sprintf(number_string, "%100d", list2[i]);
+
+        int current_count = dict_find(dictionary, number_string, 0);
+        dict_add(dictionary, number_string, current_count + 1);
+        // printf("%s count %d\n", number_string, current_count + 1);
     }
 
-    printf("total_distance:%d\n", total_distance);
+    int list_similarity = 0;
+    for (int i = 0; i < list_size; i++) {
+        char number_string[100];
+        sprintf(number_string, "%100d", list1[i]);
+        int current_sim = list1[i] * dict_find(dictionary, number_string, 0);
+        printf("current sim %d * %d\n", list1[i], dict_find(dictionary, number_string, 0));
+        list_similarity += current_sim;
+    }
+    printf("puzzle 1 - total_distance:%d\n", total_distance);
+    printf("puzzle 2 - list_similarity:%d\n", list_similarity);
     return EXIT_SUCCESS;
 }
 
