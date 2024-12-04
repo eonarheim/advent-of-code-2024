@@ -164,23 +164,14 @@ int parse(char* source, size_t source_length) {
             }
             case 'd': {
                 // peek for do() or don't()
-                if (index + 3 < source_length &&
-                    source[index] == 'd' &&
-                    source[index+1] == 'o' && 
-                    source[index+2] == '(' &&
-                    source[index+3] == ')') {
 
+                if (index + 3 < source_length &&
+                    strncmp(source + index, "do()", 4) == 0) {
                     printf("enabled\n");
                     enabled = 1;
                 }
                 if (index + 6 < source_length &&
-                    source[index] == 'd' &&
-                    source[index+1] == 'o' && 
-                    source[index+2] == 'n' && 
-                    source[index+3] == '\'' && 
-                    source[index+4] == 't' && 
-                    source[index+5] == '(' &&
-                    source[index+6] == ')') {
+                    strncmp(source + index, "don\'t()", 7) == 0) {
 
                     printf("disabled\n");
                     enabled = 0;
@@ -189,10 +180,7 @@ int parse(char* source, size_t source_length) {
             case 'm': {
                 // peek for mul(
                 if (index+3 < source_length && 
-                    source[index] == 'm' &&
-                    source[index+1] == 'u' &&
-                    source[index+2] == 'l' &&
-                    source[index+3] == '(') {
+                    strncmp(source + index, "mul(", 4) == 0) {
                     int a;
                     int b;
                     int n = 0;
