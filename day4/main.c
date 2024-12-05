@@ -111,6 +111,65 @@ int grid_find_xmas(grid_t grid, int x, int y) {
            grid_find_xmas_diagonals(grid, x, y);
 }
 
+int grid_find_cross_mas(grid_t grid, int x, int y) {
+    /**
+     * M.M
+     * .A.
+     * S.S 
+     */
+    if (grid_get(grid, x, y) == 'A' &&
+        grid_get(grid, x-1, y-1) == 'M' &&
+        grid_get(grid, x+1, y+1) == 'S' &&
+        grid_get(grid, x+1, y-1) == 'M' &&
+        grid_get(grid, x-1, y+1) == 'S'
+    ) {
+        return 1;
+    }
+    /**
+     * S.S
+     * .A.
+     * M.M 
+     */
+    if (grid_get(grid, x, y) == 'A' &&
+        grid_get(grid, x-1, y-1) == 'S' &&
+        grid_get(grid, x+1, y+1) == 'M' &&
+        grid_get(grid, x+1, y-1) == 'S' &&
+        grid_get(grid, x-1, y+1) == 'M'
+    ) {
+        return 1;
+    }
+
+    /**
+     * M.S
+     * .A.
+     * M.S 
+     */
+    if (grid_get(grid, x, y) == 'A' &&
+        grid_get(grid, x-1, y-1) == 'M' &&
+        grid_get(grid, x+1, y+1) == 'S' &&
+        grid_get(grid, x+1, y-1) == 'S' &&
+        grid_get(grid, x-1, y+1) == 'M'
+    ) {
+        return 1;
+    }
+
+    /**
+     * S.M
+     * .A.
+     * S.M 
+     */
+    if (grid_get(grid, x, y) == 'A' &&
+        grid_get(grid, x-1, y-1) == 'S' &&
+        grid_get(grid, x+1, y+1) == 'M' &&
+        grid_get(grid, x+1, y-1) == 'M' &&
+        grid_get(grid, x-1, y+1) == 'S'
+    ) {
+        return 1;
+    }
+
+    return 0;
+}
+
 int main(void) {
      // Read file into source buffer
     char* source = NULL;
@@ -191,14 +250,17 @@ int main(void) {
         .grid_data = grid_data
     };
     int count = 0;
+    int count2 = 0;
     // count += grid_find_xmas(&grid, 3, 9);
     for (int y = 0; y < grid.rows; y++) {
         for (int x = 0; x < grid.columns; x++) {
             int curr = grid_find_xmas(&grid, x, y);
-            printf("XMAS @ (%d, %d) = %d\n", x, y, curr);
+            count2 += grid_find_cross_mas(&grid, x, y);
+            // printf("XMAS @ (%d, %d) = %d\n", x, y, curr);
             count += curr;
         }
     }
 
     printf("XMAS-es: %d\n", count);
+    printf("X-MAS-es: %d\n", count2);
 }
