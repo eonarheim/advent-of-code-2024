@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
@@ -59,7 +60,8 @@ int move_and_turn(grid_t grid) {
 
     // move and mark traversal
     int max_iter = MAX(grid->rows, grid->columns);
-    while (grid_get(grid, grid->guard_x + dir_x, grid->guard_y + dir_y) != '#') {
+    while (grid_get(grid, grid->guard_x + dir_x, grid->guard_y + dir_y) != '#' &&
+           grid_get(grid, grid->guard_x + dir_x, grid->guard_y + dir_y) != 'O') {
         grid_set(grid, grid->guard_x, grid->guard_y, 'X');
         grid->guard_x += dir_x;
         grid->guard_y += dir_y;
@@ -82,6 +84,10 @@ int move_and_turn(grid_t grid) {
     grid_set(grid, grid->guard_x, grid->guard_y, grid->heading);
 
     return 0;
+}
+
+int grid_is_guard_on_board(grid_t grid) {
+    return grid_get(grid, grid->guard_x, grid->guard_y) != -1;
 }
 
 int main(void) {
@@ -184,10 +190,23 @@ int main(void) {
         .heading = initial_heading
     };
 
+    char * grid_data_search = malloc(sizeof(char) * width * lines);
+    memcpy(grid_data_search, grid_data, sizeof(char) * width * lines);
+
+    grid_s grid_search = {
+        .columns = width,
+        .rows = lines,
+        .grid_data = grid_data_search,
+        .guard_x = initial_guard_x,
+        .guard_y = initial_guard_y,
+        .heading = initial_heading
+    };
+
     printf("Initial grid\n");
     grid_print(&grid);
 
     while (move_and_turn(&grid) != 1) {
+        
         // move_and_turn(&grid);
         // grid_print(&grid);
     }
@@ -202,4 +221,39 @@ int main(void) {
         }
     }
     printf("Traversed: %d\n", count_traversed);
+
+    // naive exhaustive search for loops
+    
+
+    int loops = 0;
+    for (int y = 0; y < grid_search.rows; y++) {
+        for (int x = 0; x < grid_search.columns; x++) {
+            if (grid_get(&grid_search, x, y) == '.' ||
+                grid_get(&grid_search, x, y) == 'X') {
+                grid_set(&grid_search, x, y, 'O');
+
+                // grid_print(&grid_search);
+                // perimeter of the grid is our max
+                int max_iter = 2 * (MAX(grid.rows, grid.columns) + MAX(grid.rows, grid.columns));
+                while(move_and_turn(&grid_search) != 1 && max_iter-- > 0) {}
+                // printf("checked (%d, %d)\n", x, y);
+                if (grid_is_guard_on_board(&grid_search)) {
+                    loops++;
+                    printf("loop @ (%d, %d)\n", x, y);
+                    // grid_print(&grid_search);
+                }
+                // reset
+                grid_set(&grid_search, grid_search.guard_x, grid_search.guard_y, '.');
+                grid_search.guard_x = initial_guard_x;
+                grid_search.guard_y = initial_guard_y;
+                grid_search.heading = initial_heading;
+                grid_set(&grid_search, grid_search.guard_x, grid_search.guard_y, initial_heading);
+                // grid_print(&grid_search);
+                grid_set(&grid_search, x, y, '.');
+            }
+        }
+    }
+
+    printf("Loops found: %d\n", loops);
+
 }
